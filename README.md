@@ -1,4 +1,4 @@
-#CTFB
+# CTFB
 A command-line tool to simplify combining and/or encoding audiobooks with chapters.
 
 CTFB will collect all files in the working directory that match given patterns, 
