@@ -30,7 +30,7 @@ Examples:
     
     # Set bitrate and open cftb in the interactive mode to fill in the rest of paramters and optionally edit metadata file 
     ctfb -b 32k -i
-`
+`;
 
 async function main(bookPath, args) {
   const questions = [];
@@ -50,7 +50,7 @@ async function main(bookPath, args) {
         answers.title = args[++i];
         break;
       case '-p':
-        answers.pattern = answers.pattern ? answers.pattern.push(args[++i]) : [args[++i]];
+        answers.pattern = answers.pattern ? [...answers.pattern, args[++i]] : [args[++i]];
         break;
       case '-o':
         answers.output = args[++i];
