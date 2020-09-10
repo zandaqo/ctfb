@@ -1,0 +1,34 @@
+{
+  "name": "ctfb",
+  "version": "1.0.0",
+  "description": "A command-line tool to simplify combining and/or encoding audiobooks with chapters.",
+  "main": "cli.js",
+  "keywords": [
+    "audiobook",
+    "CLI",
+    "ffmpeg",
+    "combine"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "index.js"
+  ],
+  "bin": {
+    "ctfb": "./cli.js"
+  },
+  "author": "Maga D. Zandaqo <denelxan@gmail.com> (http://maga.name)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zandaqo/ctfb.git"
+  },
+  "homepage": "https://github.com/zandaqo/ctfb#readme",
+  "bugs": {
+    "url": "https://github.com/zandaqo/ctfb/issues"
+  },
+  "dependencies": {
+    "picomatch": "^2.2.2"
+  }
+}
