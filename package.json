@@ -1,6 +1,6 @@
 {
   "name": "ctfb",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A command-line tool to simplify combining and/or encoding audiobooks with chapters.",
   "main": "cli.js",
   "keywords": [
