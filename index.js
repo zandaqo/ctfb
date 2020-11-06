@@ -70,7 +70,8 @@ class CTFB {
         const chapterStartTime = constructor.toSexagesimal(this.bookLength);
         this.metadata.push(`CHAPTER${chapterId}=${chapterStartTime}`, `CHAPTER${chapterId}NAME=${chapterName}`);
         this.bookLength += constructor.getDuration(filePath);
-        this.fileList.push(`file '${filePath}'`);
+        const escapedFilePath = filePath.replace(/'/g, "'\\''");
+        this.fileList.push(`file '${escapedFilePath}'`);
         id += 1;
       }
     }
