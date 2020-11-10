@@ -65,14 +65,25 @@ class CTFB {
       const filename = file.name;
       if (this.pattern(filename)) {
         const filePath = path.join(dir.path, file.name);
-        const chapterId = constructor.toDecimal(id);
-        const chapterName = constructor.getChapterName(filename);
-        const chapterStartTime = constructor.toSexagesimal(this.bookLength);
-        this.metadata.push(`CHAPTER${chapterId}=${chapterStartTime}`, `CHAPTER${chapterId}NAME=${chapterName}`);
-        this.bookLength += constructor.getDuration(filePath);
+        const data = execSync(`ffprobe -i "${filePath}" -print_format json -show_chapters -show_entries format -loglevel error`).toString();
+        const json = JSON.parse(data);
+        const fileDuration = parseFloat(json.format.duration);
+        if (!json.chapters.length) {
+          json.chapters.push({
+            'start_time': 0,
+            tags: { title: constructor.getFileName(filename) }
+          });
+        }
+        for (const chapter of json.chapters) {
+          const chapterId = constructor.toDecimal(id);
+          const chapterName = (chapter.tags && chapter.tags.title) || id;
+          const chapterStartTime = constructor.toSexagesimal(this.bookLength + parseFloat(chapter['start_time']));
+          this.metadata.push(`CHAPTER${chapterId}=${chapterStartTime}`, `CHAPTER${chapterId}NAME=${chapterName}`);
+          id += 1;
+        }
+        this.bookLength += fileDuration;
         const escapedFilePath = filePath.replace(/'/g, "'\\''");
         this.fileList.push(`file '${escapedFilePath}'`);
-        id += 1;
       }
     }
   }
@@ -112,12 +123,7 @@ class CTFB {
     return `${hours}:${minutes}:${seconds}.${remainder}`;
   }
 
-  static getDuration(filePath) {
-    const duration = execSync(`ffprobe -i "${filePath}" -show_entries format=duration -v quiet -of csv="p=0"`).toString().trim();
-    return parseFloat(duration);
-  }
-
-  static getChapterName(filename) {
+  static getFileName(filename) {
     const extension = path.extname(filename);
     return filename.slice(0, filename.length - extension.length);
   }

@@ -3,7 +3,8 @@ A command-line tool to simplify combining and/or encoding audiobooks with chapte
 
 CTFB will collect all files in the working directory that match given patterns, 
 create a metadata file treating the files as chapters, and encode them into a single file
-with added chapter markers. In interactive mode, it offers to manually edit the generated metadata file
+with added chapter markers. If input files have chapter marks those will be added to the chapters of the resulting file.
+ In interactive mode, it offers to manually edit the generated metadata file
 before creating the final audio file in case the user wants to change, say, generated chapter markers.
 Under the hood, it uses ffmpeg for encoding, hence, it supports a wide variety of audio formats as input and output.
 
@@ -33,7 +34,7 @@ Total duration: 00:19:05.234
 Progress: 100.000%
 Time Elapsed: 00:00:07.904
 ```
-Each file will be treated as a chapter, and the resulting file
+Each file will be treated as a chapter (or multiple chapters if they contain chapter marks) and the resulting file
  will have chapter marks at the beginning time of each original file 
  named as the file sans the extension.
 
