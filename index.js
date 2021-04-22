@@ -20,8 +20,8 @@ class CTFB {
     this.bookLength = 0;
   }
 
-  async process(isInteractive) {
-    await this.scan();
+  async process(isInteractive, isYoutube) {
+    await this.scan(isYoutube);
     /* Exit if no files found. */
     if (!this.fileList.length) {
       console.log('No files found.')
@@ -56,8 +56,7 @@ class CTFB {
     }
   }
 
-  async scan() {
-    const { constructor } = this;
+  async scan(isYoutube) {
     const dir = await fs.promises.opendir(this.bookPath);
     this.metadata = [';FFMETADATA', `title=${this.title}`];
     let id = 0;
@@ -68,19 +67,8 @@ class CTFB {
         const data = execSync(`ffprobe -i "${filePath}" -print_format json -show_chapters -show_entries format -loglevel error`).toString();
         const json = JSON.parse(data);
         const fileDuration = parseFloat(json.format.duration);
-        if (!json.chapters.length) {
-          json.chapters.push({
-            'start_time': 0,
-            tags: { title: constructor.getFileName(filename) }
-          });
-        }
-        for (const chapter of json.chapters) {
-          const chapterId = constructor.toDecimal(id);
-          const chapterName = (chapter.tags && chapter.tags.title) || id;
-          const chapterStartTime = constructor.toSexagesimal(this.bookLength + parseFloat(chapter['start_time']));
-          this.metadata.push(`CHAPTER${chapterId}=${chapterStartTime}`, `CHAPTER${chapterId}NAME=${chapterName}`);
-          id += 1;
-        }
+        const chapters = !isYoutube ? CTFB.getFileChapters(json.chapters) : CTFB.getYoutubeChapters(dir.path, file.name);
+        id = CTFB.setChapters(this.metadata, id, filename, chapters, this.bookLength);
         this.bookLength += fileDuration;
         const escapedFilePath = filePath.replace(/'/g, "'\\''");
         this.fileList.push(`file '${escapedFilePath}'`);
@@ -144,6 +132,41 @@ class CTFB {
       case 'win32': return 'start';
       default: return 'xdg-open';
     }
+  }
+
+  static getFileChapters(chapters) {
+    for (const chapter of chapters) {
+      chapter.title = chapter.tags && chapter.tags.title || '';
+    }
+    return chapters;
+  }
+
+  static getYoutubeChapters(dir, name) {
+    const infoFilePath = path.join(dir, path.basename(name, path.extname(name)) + '.info.json');
+    try {
+      const file = fs.readFileSync(infoFilePath, { encoding: 'utf8' });
+      const json = JSON.parse(file);
+      return json.chapters || [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  static setChapters(metadata, id, filename, chapters, bookLength) {
+    if (!chapters.length) {
+      chapters.push({
+        'start_time': 0,
+        title: CTFB.getFileName(filename),
+      });
+    }
+    for (const chapter of chapters) {
+      const chapterId = CTFB.toDecimal(id);
+      const chapterName = chapter.title || id;
+      const chapterStartTime = CTFB.toSexagesimal(bookLength + parseFloat(chapter['start_time']));
+      metadata.push(`CHAPTER${chapterId}=${chapterStartTime}`, `CHAPTER${chapterId}NAME=${chapterName}`);
+      id += 1;
+    }
+    return id;
   }
 }
 

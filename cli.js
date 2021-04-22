@@ -20,6 +20,7 @@ Options:
     -o   Output file name with extension
     -b   Bitrate of the final file
     -i   Enables the interactive mode
+    -yt  Looks for chapters in .info.json files created by youtube-dl.
 
 Examples:
     # By default, combines all *.mp3 files in the directory into %directory-name%.opus file
@@ -36,6 +37,7 @@ async function main(bookPath, args) {
   const questions = [];
   const answers = {};
   let isInteractive = false;
+  let isYoutube = false;
 
   /* Parse command line options. */
   let i = 0;
@@ -44,7 +46,9 @@ async function main(bookPath, args) {
     switch (arg) {
       case '-i':
         isInteractive = true;
-        i++;
+        break;
+      case '-yt':
+        isYoutube = true;
         break;
       case '-t':
         answers.title = args[++i];
@@ -55,7 +59,7 @@ async function main(bookPath, args) {
       case '-o':
         answers.output = args[++i];
         break;
-        case '-b':
+      case '-b':
         answers.bitrate = args[++i];
         break;
       case '-h':
@@ -97,11 +101,11 @@ async function main(bookPath, args) {
         rl.write(options[question].answer);
       } else {
         rl.close();
-        await new CTFB(bookPath, answers).process(isInteractive);
+        await new CTFB(bookPath, answers).process(isInteractive, isYoutube);
       }
     });
   } else {
-    await new CTFB(bookPath, answers).process(isInteractive);
+    await new CTFB(bookPath, answers).process(isInteractive, isYoutube);
   }
 }
 
