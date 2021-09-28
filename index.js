@@ -79,7 +79,7 @@ class CTFB {
   async combine() {
     const start = performance.now();
     const totalTime = this.bookLength * 1e6;
-    const ffmpeg = exec(`ffmpeg -y -hide_banner -loglevel 16 -progress - -f concat -safe 0 -i "${this.fileListPath}" -i "${this.metaPath}" -map_metadata 1 -b:a ${this.bitrate} "${this.output}"`);
+    const ffmpeg = exec(`ffmpeg -y -hide_banner -loglevel 16 -progress - -f concat -safe 0 -i "${this.fileListPath}" -i "${this.metaPath}" -map_metadata 1 ${this.bitrate ? `-b:a {this.bitrate}` : `-c:a copy` } "${this.output}"`);
     ffmpeg.stdout.on('data', (data) => {
       const match = reCurrentTime.exec(data);
       if (match) this.constructor.printProgress(match[1], totalTime, start);
