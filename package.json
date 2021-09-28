@@ -1,6 +1,6 @@
 {
   "name": "ctfb",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A command-line tool to simplify combining and/or encoding audiobooks with chapters.",
   "main": "cli.js",
   "keywords": [
@@ -29,6 +29,6 @@
     "url": "https://github.com/zandaqo/ctfb/issues"
   },
   "dependencies": {
-    "picomatch": "^2.2.2"
+    "picomatch": "^2.3.0"
   }
 }
