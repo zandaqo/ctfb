@@ -30,7 +30,7 @@ class CTFB {
 
     console.log(`${this.fileList.length} input files found.`);
     console.log(
-      `Total duration: ${this.constructor.toSexagesimal(this.bookLength)}`,
+      `Total duration: ${this.constructor.toSexagesimal(this.bookLength)}`
     );
 
     /* Save metadata to text files. */
@@ -42,7 +42,7 @@ class CTFB {
       await this.combine();
     } else {
       console.log(
-        `Press [m] to open the generated metadata file.\nPress any other button to start creating the book.`,
+        `Press [m] to open the generated metadata file.\nPress any other button to start creating the book.`
       );
       if (process.stdin.isTTY) process.stdin.setRawMode(true);
       process.stdin.resume();
@@ -61,32 +61,41 @@ class CTFB {
   }
 
   async scan(isYoutube) {
-    const dir = await fs.promises.opendir(this.bookPath);
-    this.metadata = [";FFMETADATA", `title=${this.title}`];
-    let id = 0;
+    const dir = await fs.promises.opendir(this.bookPath, {});
+    const files = [];
     for await (const file of dir) {
       const filename = file.name;
       if (this.pattern(filename)) {
         const filePath = path.join(dir.path, file.name);
         const data = execSync(
-          `ffprobe -i "${filePath}" -print_format json -show_chapters -show_entries format -loglevel error`,
+          `ffprobe -i "${filePath}" -print_format json -show_chapters -show_entries format -loglevel error`
         ).toString();
         const json = JSON.parse(data);
-        const fileDuration = parseFloat(json.format.duration);
         const chapters = !isYoutube
           ? CTFB.getFileChapters(json.chapters)
           : CTFB.getYoutubeChapters(dir.path, file.name);
-        id = CTFB.setChapters(
-          this.metadata,
-          id,
-          filename,
+        files.push({
+          name: filename,
+          path: filePath.replace(/'/g, "'\\''"),
+          duration: parseFloat(json.format.duration),
           chapters,
-          this.bookLength,
-        );
-        this.bookLength += fileDuration;
-        const escapedFilePath = filePath.replace(/'/g, "'\\''");
-        this.fileList.push(`file '${escapedFilePath}'`);
+        });
       }
+    }
+    files.sort((a, b) => a.name.localeCompare(b.name));
+
+    this.metadata = [";FFMETADATA", `title=${this.title}`];
+    let id = 0;
+    for (const file of files) {
+      id = CTFB.setChapters(
+        this.metadata,
+        id,
+        file.name,
+        file.chapters,
+        this.bookLength
+      );
+      this.bookLength += file.duration;
+      this.fileList.push(`file '${file.path}'`);
     }
   }
 
@@ -94,9 +103,11 @@ class CTFB {
     const start = performance.now();
     const totalTime = this.bookLength * 1e6;
     const ffmpeg = exec(
-      `ffmpeg -y -hide_banner -loglevel 16 -progress - -f concat -safe 0 -i "${this.fileListPath}" -i "${this.metaPath}" -map_metadata 1 ${
+      `ffmpeg -y -hide_banner -loglevel 16 -progress - -f concat -safe 0 -i "${
+        this.fileListPath
+      }" -i "${this.metaPath}" -map_metadata 1 ${
         this.bitrate ? `-b:a ${this.bitrate}` : `-c:a copy`
-      } "${this.output}"`,
+      } "${this.output}"`
     );
     ffmpeg.stdout.on("data", (data) => {
       const match = reCurrentTime.exec(data);
@@ -105,9 +116,9 @@ class CTFB {
     ffmpeg.on("exit", () => {
       const end = performance.now();
       console.log(
-        `\nTime Elapsed: ${
-          this.constructor.toSexagesimal((end - start) / 1000)
-        }`,
+        `\nTime Elapsed: ${this.constructor.toSexagesimal(
+          (end - start) / 1000
+        )}`
       );
 
       // delete temporary files
@@ -143,7 +154,7 @@ class CTFB {
     const currentTime = performance.now();
     const progress = (fraction * 100).toFixed(3) + "%";
     const timeLeft = this.toSexagesimal(
-      ((currentTime - startTime) * ((1 / fraction) - 1)) / 1e3,
+      ((currentTime - startTime) * (1 / fraction - 1)) / 1e3
     );
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
@@ -163,7 +174,7 @@ class CTFB {
 
   static getFileChapters(chapters) {
     for (const chapter of chapters) {
-      chapter.title = chapter.tags && chapter.tags.title || "";
+      chapter.title = (chapter.tags && chapter.tags.title) || "";
     }
     return chapters;
   }
@@ -171,7 +182,7 @@ class CTFB {
   static getYoutubeChapters(dir, name) {
     const infoFilePath = path.join(
       dir,
-      path.basename(name, path.extname(name)) + ".info.json",
+      path.basename(name, path.extname(name)) + ".info.json"
     );
     try {
       const file = fs.readFileSync(infoFilePath, { encoding: "utf8" });
@@ -185,7 +196,7 @@ class CTFB {
   static setChapters(metadata, id, filename, chapters, bookLength) {
     if (!chapters.length) {
       chapters.push({
-        "start_time": 0,
+        start_time: 0,
         title: CTFB.getFileName(filename),
       });
     }
@@ -193,11 +204,11 @@ class CTFB {
       const chapterId = CTFB.toDecimal(id);
       const chapterName = chapter.title || id;
       const chapterStartTime = CTFB.toSexagesimal(
-        bookLength + parseFloat(chapter["start_time"]),
+        bookLength + parseFloat(chapter["start_time"])
       );
       metadata.push(
         `CHAPTER${chapterId}=${chapterStartTime}`,
-        `CHAPTER${chapterId}NAME=${chapterName}`,
+        `CHAPTER${chapterId}NAME=${chapterName}`
       );
       id += 1;
     }

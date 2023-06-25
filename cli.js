@@ -4,13 +4,13 @@ const readline = require("readline");
 const CTFB = require("./index");
 
 const options = {
-  "title": { question: "Title: ", answer: path.basename(process.cwd()) },
-  "pattern": { question: "Input Pattern: ", answer: "*.opus" },
-  "output": {
+  title: { question: "Title: ", answer: path.basename(process.cwd()) },
+  pattern: { question: "Input Pattern: ", answer: "*.opus" },
+  output: {
     question: "Output File: ",
     answer: path.basename(process.cwd()) + ".opus",
   },
-  "bitrate": { question: "Bitrate: ", answer: "" },
+  bitrate: { question: "Bitrate: ", answer: "" },
 };
 
 const help = `
@@ -86,9 +86,10 @@ async function main(bookPath, args) {
       if (isInteractive) {
         questions.push(option);
       } else {
-        answers[option] = option === "pattern"
-          ? [options.pattern.answer]
-          : options[option].answer;
+        answers[option] =
+          option === "pattern"
+            ? [options.pattern.answer]
+            : options[option].answer;
       }
     }
   }
